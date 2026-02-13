@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>ilhaam — Style With Soul</title>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="style.css" rel="stylesheet">
+</link></head>
+<body>
+<!-- Top moving strip -->
+<div class="top-strip">
+<div aria-label="Offers" class="marquee">
+<div class="marquee__track">
+<span>Made to Order, Made for You</span>
+<span>Designed by ilhaam</span>
+<span>10% off your first order</span>
+<span>Free Express Shipping across India</span>
+<span>Made to Order, Made for You</span>
+<span>Designed by ilhaam</span>
+<span>10% off your first order</span>
+<span>Free Express Shipping across India</span>
+</div>
+</div>
+<button aria-label="Toggle theme" class="theme-toggle" id="themeToggle" type="button">
+<span class="theme-toggle__dot"></span>
+<span class="theme-toggle__label">Dark</span>
+</button>
+</div>
+<!-- Header -->
+<header class="header">
+<div class="header__row header__row--social">
+<div class="social">
+<span class="social__item">
+<span class="social__icon">◎</span>
+<span>44k+ followers</span>
+</span>
+<span class="social__item">
+<span class="social__icon">f</span>
+<span>4k+ followers</span>
+</span>
+</div>
+<a aria-label="ilhaam home" class="brand" href="#top">
+<img alt="ilhaam — Style With Soul" src="assets/ui/brand/logo.png"/>
+</a>
+<div class="search">
+<span class="search__icon">🔍</span>
+<input aria-label="Search products" id="searchInput" placeholder="Search Products" type="search"/>
+</div>
+</div>
+<nav aria-label="Primary" class="nav">
+<a href="#new">NEW</a>
+<a href="#shop">SHOP</a>
+<a href="#track">TRACK ORDER</a>
+<a href="#policy">POLICY</a>
+<a href="#contact">CONTACT US</a>
+<a href="#about">ABOUT US</a>
+</nav>
+</header>
+<!-- Hero slider (no text) -->
+<main id="top">
+<section aria-label="Hero slider" class="hero">
+<div class="hero__frame">
+<button aria-label="Previous slide" class="hero__arrow hero__arrow--left" type="button">‹</button>
+<button aria-label="Next slide" class="hero__arrow hero__arrow--right" type="button">›</button>
+<div class="hero__slides" id="heroSlides">
+<img alt="" class="hero__img" src="assets/ui/hero/slide-1.png"/>
+<img alt="" class="hero__img" src="assets/ui/hero/slide-2.png"/>
+<img alt="" class="hero__img" src="assets/ui/hero/slide-3.png"/>
+<img alt="" class="hero__img" src="assets/ui/hero/slide-4.png"/>
+</div>
+<div aria-label="Slide dots" class="hero__dots" id="heroDots"></div>
+</div>
+</section>
+<!-- Friday Drop -->
+<section class="friday" id="new">
+<div class="friday__wrap">
+<div class="friday__left">
+<div class="friday__title">FRIDAY DROP</div>
+<div class="friday__sub">Every Friday — New arrival goes live. Stay ready.</div>
+</div>
+<div aria-label="Countdown" class="countdown">
+<div class="countdown__box"><div class="countdown__num" id="cdDays">00</div><div class="countdown__lab">DAYS</div></div>
+<div class="countdown__box"><div class="countdown__num" id="cdHours">00</div><div class="countdown__lab">HOURS</div></div>
+<div class="countdown__box"><div class="countdown__num" id="cdMins">00</div><div class="countdown__lab">MINUTES</div></div>
+<div class="countdown__box"><div class="countdown__num" id="cdSecs">00</div><div class="countdown__lab">SECONDS</div></div>
+</div>
+</div>
+</section>
+<!-- Category chips -->
+<section aria-label="Category filters" class="cats" id="shop">
+<button class="cat" data-filter="friday" type="button">
+<img alt="" src="assets/ui/tabs/friday.png"/>
+<span>Friday<br/>drops</span>
+</button>
+<button class="cat cat--active" data-filter="all" type="button">
+<img alt="" src="assets/ui/tabs/all.png"/>
+<span>All T‑shirt</span>
+</button>
+<button class="cat" data-filter="black" type="button">
+<img alt="" src="assets/ui/tabs/black.png"/>
+<span>Black</span>
+</button>
+<button class="cat" data-filter="white" type="button">
+<img alt="" src="assets/ui/tabs/white.png"/>
+<span>White</span>
+</button>
+<button class="cat" data-filter="soon" type="button">
+<img alt="" src="assets/ui/tabs/comingsoon.png"/>
+<span>Comming<br/>Soon</span>
+</button>
+</section><section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
+<!-- Product row (carousel) -->
+<section class="section" id="row1Section">
+<div class="carousel" data-carousel="row1">
+<button aria-label="Scroll left" class="carousel__arrow carousel__arrow--left" type="button">‹</button>
+<div class="carousel__track" id="row1Track"></div>
+<button aria-label="Scroll right" class="carousel__arrow carousel__arrow--right" type="button">›</button>
+</div>
+</section>
+<!-- Trending collage -->
+<section class="section" id="trendingSection">
+<h2 class="title">TRENDING</h2>
+<div class="trending">
+<img alt="" src="assets/ui/sections/section-1.png"/>
+<img alt="" src="assets/ui/sections/section-2.png"/>
+<img alt="" src="assets/ui/sections/section-3.png"/>
+<img alt="" src="assets/ui/sections/section-4.png"/>
+<img alt="" src="assets/ui/sections/section-5.png"/>
+</div>
+</section>
+<!-- Second product row -->
+<section class="section" id="row2Section">
+<div class="carousel" data-carousel="row2">
+<button aria-label="Scroll left" class="carousel__arrow carousel__arrow--left" type="button">‹</button>
+<div class="carousel__track" id="row2Track"></div>
+<button aria-label="Scroll right" class="carousel__arrow carousel__arrow--right" type="button">›</button>
+</div>
+</section>
+<!-- Season favourites banner -->
+<section class="banner" id="festivalSection">
+<div class="banner__inner">
+<div class="banner__title">SEASON’S FAVORITES</div>
+<a class="banner__btn" href="#shop">SHOP NOW</a>
+</div>
+</section>
+<!-- Third product row -->
+<section class="section" id="row3Section">
+<div class="carousel" data-carousel="row3">
+<button aria-label="Scroll left" class="carousel__arrow carousel__arrow--left" type="button">‹</button>
+<div class="carousel__track" id="row3Track"></div>
+<button aria-label="Scroll right" class="carousel__arrow carousel__arrow--right" type="button">›</button>
+</div>
+</section>
+<!-- Footer (placeholder content - you can edit later) -->
+<footer class="footer" id="about">
+<div class="footer__top">
+<a class="footer__cta" href="#shop">VIEW ALL PRODUCTS</a>
+</div>
+<div class="footer__icons">
+<div class="footer__icon"><div class="ico">📦</div><div>FREE SHIPPING</div></div>
+<div class="footer__icon"><div class="ico">↩️</div><div>RETURN WITHIN 7 DAYS</div></div>
+<div class="footer__icon"><div class="ico">⚡</div><div>FAST DELIVERY</div></div>
+</div>
+<div class="footer__grid" id="contact">
+<div>
+<div class="footer__head">NEED HELP?</div>
+<a href="#track">Order Status</a>
+<a href="#policy">Delivery</a>
+<a href="#policy">Returns</a>
+<a href="#policy">FAQs</a>
+<a href="#policy">Shipping Policy</a>
+<a href="#policy">Return &amp; Exchange Policy</a>
+<a href="#contact">Contact Us</a>
+</div>
+<div>
+<div class="footer__head">ABOUT US</div>
+<div class="footer__text">Ilhaam is a premium modest clothing brand. Replace this text later with your final brand story.</div>
+<div class="footer__head" style="margin-top:16px;">CONTACT</div>
+<div class="footer__text">WhatsApp: +91 8287578027<br/>Email: ilhaamstylewithsoul@gmail.com<br/>Instagram: @ilhaam_stylewithsoul</div>
+</div>
+<div>
+<div class="footer__head">JOIN THE ILHAAM COMMUNITY</div>
+<div class="newsletter">
+<input aria-label="Email or phone" placeholder="Enter your e-mail / mobile number" type="email"/>
+<button type="button">→</button>
+</div>
+<div class="footer__text" style="margin-top:10px;">Sign up for updates on the latest drops, campaigns and videos.</div>
+<div class="footer__head" style="margin-top:16px;">FIND US ON SOCIAL</div>
+<div class="social-row">
+<span class="soc">f</span>
+<span class="soc">◎</span>
+<span class="soc">▶</span>
+<span class="soc">in</span>
+</div>
+</div>
+</div>
+<div class="footer__bottom" id="policy">
+<div>Free shipping across India • Dispatch 1–2 days • Delivery 2–5 working days • 7‑day return if tags/stickers intact</div>
+<div>© <span id="yr"></span> ilhaam — Style With Soul</div>
+</div>
+</footer>
+</main>
+<!-- Product Modal -->
+<div aria-hidden="true" class="modal" id="productModal">
+<div class="modal__backdrop" data-close="1"></div>
+<div aria-label="Product details" aria-modal="true" class="modal__panel" role="dialog">
+<button aria-label="Close" class="modal__close" data-close="1" type="button">×</button>
+<div class="pdp">
+<div class="pdp__left">
+<div class="pdp__imgwrap">
+<img alt="" id="pdpMainImg" src=""/>
+</div>
+<div class="pdp__thumbs" id="pdpThumbs"></div>
+</div>
+<div class="pdp__right">
+<div class="pdp__title" id="pdpTitle">Product</div>
+<div class="pdp__price"><span id="pdpPrice">₹849</span> <span class="pdp__mrp">₹1,199</span> <span class="pdp__off">(29% OFF)</span></div>
+<div class="pdp__row">
+<div class="pdp__label">Variant</div>
+<div class="seg" id="pdpVariant">
+<button class="seg__btn seg__btn--active" data-variant="White" type="button">White</button>
+<button class="seg__btn" data-variant="Black" type="button">Black</button>
+</div>
+</div>
+<div class="pdp__row">
+<div class="pdp__label">Size</div>
+<div class="sizes" id="pdpSizes">
+<button class="size size--active" data-size="S" type="button">S</button>
+<button class="size" data-size="M" type="button">M</button>
+<button class="size" data-size="L" type="button">L</button>
+<button class="size" data-size="XL" type="button">XL</button>
+<button class="size" data-size="2XL" type="button">2XL</button>
+</div>
+</div>
+<div class="pdp__row">
+<div class="pdp__label">Quantity</div>
+<div class="qty">
+<button id="qtyMinus" type="button">−</button>
+<input id="qtyVal" min="1" type="number" value="1"/>
+<button id="qtyPlus" type="button">+</button>
+</div>
+</div>
+<div class="pdp__actions">
+<button class="btn btn--ghost" id="addToCartBtn" type="button">ADD TO CART</button>
+<button class="btn btn--gold" id="waOrderBtn" type="button">ORDER ON WHATSAPP</button>
+</div>
+<details class="acc" open="">
+<summary>DESCRIPTION</summary>
+<div class="acc__body">
+<div><b>Color:</b> Off White</div>
+<div><b>Pattern:</b> Printed</div>
+<div><b>Fabric:</b> Pure Cotton</div>
+<div><b>Fit:</b> Oversized</div>
+<div><b>Sleeve:</b> Full Sleeve / Half Sleeve</div>
+<div><b>Neck:</b> Crew Neck</div>
+</div>
+</details>
+<details class="acc">
+<summary>RETURN &amp; EXCHANGE</summary>
+<div class="acc__body">
+              7‑day return/exchange (conditions apply). Free shipping India‑only. If tags/stickers are intact. COD limits may apply.
+            </div>
+</details>
+<details class="acc">
+<summary>DELIVERY</summary>
+<div class="acc__body">
+              Dispatch in 1–2 days. Delivery: metros 2–3 days, rest of India 3–5 working days.
+            </div>
+</details>
+<div class="pin">
+<div class="pin__head">Check your delivery date</div>
+<div class="pin__row">
+<input id="pinInput" inputmode="numeric" placeholder="Enter your pin code" type="text"/>
+<button id="pinCheck" type="button">Check</button>
+</div>
+<div class="pin__note" id="pinNote"></div>
+</div>
+<div class="pdp__share">Share: <span>f</span> <span>◎</span> <span>✈</span></div>
+<div class="pdp__tiny">Note: Return policy not valid on sale/offer days (edit later if needed).</div>
+</div>
+</div>
+</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
