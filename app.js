@@ -1,6 +1,24 @@
 // Ilhaam single-page mock + WhatsApp order
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const escapeHtml = (str='') => str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let currentSort = 'default';
+let searchQuery = '';
+let currentFilter = 'all';
+let pendingOrderItems = null; // array of items to checkout
+
+function applySort(items){
+  const arr = items.slice();
+  const byName = (a,b)=> (a.title||'').localeCompare((b.title||''));
+  switch(currentSort){
+    case 'price_asc': return arr.sort((a,b)=>(a.price||0)-(b.price||0));
+    case 'price_desc': return arr.sort((a,b)=>(b.price||0)-(a.price||0));
+    case 'name_asc': return arr.sort(byName);
+    case 'name_desc': return arr.sort((a,b)=>-byName(a,b));
+    default: return arr;
+  }
+}
 
 /* Theme toggle */
 (function initTheme(){
@@ -298,14 +316,19 @@ function cardHTML(p, opts = {}){
 
 function renderRow(trackId, pickFn, opts = {}){
   const track = document.getElementById(trackId);
+  if(!track) return;
   let items = PRODUCTS.filter(pickFn);
+  if(opts.sort){ items = applySort(items); }
   if(opts.limit){ items = items.slice(0, opts.limit); }
   track.innerHTML = items.map(p => cardHTML(p, opts)).join('');
 }
 
-renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true});
-renderRow('row2Track', p => p.tags.includes('black'));
-renderRow('row3Track', p => p.tags.includes('white'));
+function renderAllRows(){
+  renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true});
+  renderRow('row2Track', p => p.tags.includes('black'), {sort:true});
+  renderRow('row3Track', p => p.tags.includes('white'), {sort:true});
+}
+renderAllRows();
 
 /* Carousel arrows */
 $$('.carousel').forEach(car=>{
@@ -324,19 +347,7 @@ function setSectionVisible(id, show){
   el.style.display = show ? '' : 'none';
 }
 function setFilter(f, opts={}){
-  currentCategory = f;
-  // If user is searching, keep them in results view
-  if(typeof uiState !== 'undefined' && normalize(uiState.query)){
-    if(f==='black' || f==='white' || f==='all'){
-      uiState.qfilter = f;
-      $$('#quickFilters .pill').forEach(b=>{
-        b.classList.toggle('pill--active', (b.dataset.qfilter||'all')===f);
-      });
-    }
-    renderResults();
-    return;
-  }
-
+  currentFilter = f;
   // active chip
   $$('.cat').forEach(b=> b.classList.remove('cat--active'));
   const active = $(`.cat[data-filter="${f}"]`);
@@ -406,6 +417,8 @@ function setFilter(f, opts={}){
     if(!opts.noScroll){
   document.querySelector('#row1Section')?.scrollIntoView({behavior:'smooth', block:'start'});
     }
+  // keep product order in sync
+  if(!searchQuery) renderAllRows();
 }
 
 $$('.cat').forEach(btn=>{
@@ -417,84 +430,33 @@ $$('.cat').forEach(btn=>{
 
 setFilter('all', {noScroll:true});
 
-/* Search + Sort + Filters */
-let currentCategory = 'all';
-const uiState = { query:'', sort:'featured', qfilter:'all' };
-
-function normalize(s){ return (s||'').toString().toLowerCase().trim(); }
-
-function applySort(list){
-  const mode = uiState.sort;
-  const arr = list.slice();
-  if(mode === 'price_asc') arr.sort((a,b)=>(a.price||0)-(b.price||0));
-  else if(mode === 'price_desc') arr.sort((a,b)=>(b.price||0)-(a.price||0));
-  else if(mode === 'title_asc') arr.sort((a,b)=>a.title.localeCompare(b.title));
-  else if(mode === 'title_desc') arr.sort((a,b)=>b.title.localeCompare(a.title));
-  return arr;
-}
-
-function matchesFilters(p){
-  const q = normalize(uiState.query);
-  if(q && !normalize(p.title).includes(q)) return false;
-
-  const f = uiState.qfilter;
-  if(f && f !== 'all' && !(p.tags||[]).includes(f)) return false;
-
-  // if user is in a category view, respect it when search is empty.
-  if(!q && currentCategory && currentCategory !== 'all' && currentCategory !== 'friday' && currentCategory !== 'soon'){
-    if(!(p.tags||[]).includes(currentCategory)) return false;
-  }
-  return true;
-}
-
-function renderResults(){
-  const section = document.getElementById('searchResultsSection');
-  const grid = document.getElementById('resultsGrid');
-  const count = document.getElementById('resultsCount');
-  if(!section || !grid || !count) return;
-
-  const q = normalize(uiState.query);
-  const list = applySort(PRODUCTS.filter(matchesFilters));
-
-  count.textContent = `${list.length} item${list.length===1?'':'s'}`;
-  grid.innerHTML = list.map(p => cardHTML(p, {})).join('');
-  section.style.display = q ? '' : 'none';
-
-  // When searching, hide other sections to avoid confusion
-  if(q){
-    ['comingSoonSection','row1Section','trendingSection','row2Section','festivalSection','row3Section'].forEach(id=>setSectionVisible(id,false));
-  }else{
-    // restore by category
-    setFilter(currentCategory, {noScroll:true});
-  }
-}
-
+/* Search (demo) */
 $('#searchInput')?.addEventListener('input', (e)=>{
-  uiState.query = e.target.value || '';
-  renderResults();
-});
+  searchQuery = (e.target.value||'').trim().toLowerCase();
+  const searchSection = document.getElementById('searchSection');
+  const searchTrack = document.getElementById('searchTrack');
+  const meta = document.getElementById('searchMeta');
+  const mainIds = ['row1Section','trendingSection','row2Section','festivalSection','row3Section','comingSoonSection'];
 
-$('#clearSearchBtn')?.addEventListener('click', ()=>{
-  const inp = $('#searchInput');
-  if(inp) inp.value = '';
-  uiState.query = '';
-  renderResults();
-});
+  if(!searchQuery){
+    if(searchSection) searchSection.style.display='none';
+    mainIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=''; });
+    renderAllRows();
+    setFilter(currentFilter, {noScroll:true});
+    return;
+  }
 
-$('#sortSelect')?.addEventListener('change', (e)=>{
-  uiState.sort = e.target.value;
-  renderResults();
-});
+  // show search results, hide main sections
+  mainIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  if(searchSection) searchSection.style.display='';
 
-$$('#quickFilters .pill').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    $$('#quickFilters .pill').forEach(b=>b.classList.remove('pill--active'));
-    btn.classList.add('pill--active');
-    uiState.qfilter = btn.dataset.qfilter || 'all';
-    renderResults();
-  });
+  let items = PRODUCTS.filter(p => (p.title||'').toLowerCase().includes(searchQuery));
+  items = applySort(items);
+  if(meta) meta.textContent = items.length ? `${items.length} result(s)` : 'No results';
+  if(searchTrack){
+    searchTrack.innerHTML = items.length ? items.map(p=>cardHTML(p, {})).join('') : `<div style="padding:18px;opacity:.7">No products found for “${escapeHtml(searchQuery)}”.</div>`;
+  }
 });
-
 
 /* Product Modal */
 const modal = $('#productModal');
@@ -563,7 +525,6 @@ function renderPdp(p, opts = {}){
   }
 }
 function closeModal(){
-  if(typeof closeOrderSheet==='function'){ closeOrderSheet(); }
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden','true');
   document.body.style.overflow='';
@@ -630,71 +591,127 @@ function getSelectedSize(){
   return $('#pdpSizes .size--active')?.dataset?.size || 'M';
 }
 
-const orderSheet = $('#orderSheet');
-const orderForm = $('#orderForm');
-function openOrderSheet(){
-  if(!orderSheet) return;
-  orderSheet.classList.add('is-open');
-  orderSheet.setAttribute('aria-hidden','false');
-  // keep focus sensible on mobile
-  setTimeout(()=> $('#custName')?.focus(), 50);
-}
-function closeOrderSheet(){
-  if(!orderSheet) return;
-  orderSheet.classList.remove('is-open');
-  orderSheet.setAttribute('aria-hidden','true');
-}
-
-$('#orderBackBtn')?.addEventListener('click', closeOrderSheet);
-
-$('#waOrderBtn')?.addEventListener('click', ()=>{
+$('#waOrderBtn').addEventListener('click', ()=>{
+  if($('#waOrderBtn').disabled) return;
   if(!currentProduct) return;
-  // If Friday preview modal is open, do not allow ordering
-  if(modal?.dataset.preview === '1'){
-    alert('This is a preview. Please open product from shop to order.');
-    return;
-  }
-  openOrderSheet();
+  const qty = Math.max(1, parseInt($('#qtyVal').value||'1',10));
+  const variant = getSelectedVariant();
+  const size = getSelectedSize();
+  pendingOrderItems = [{
+    title: currentProduct.title,
+    variant, size,
+    qty,
+    price: currentProduct.price || 0,
+    image: currentProduct.images?.[0] || ''
+  }];
+  openWaForm();
 });
 
-orderForm?.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  if(!currentProduct) return;
 
-  const variant = $('#pdpVariant .seg__btn--active')?.dataset.variant || currentProduct.variant || '—';
-  const size = $('#pdpSizes .size--active')?.dataset.size || '—';
-  const qty = parseInt($('#qtyVal')?.value || '1', 10) || 1;
+/* Cart */
+const CART_KEY = 'ilhaam_cart_v1';
+function loadCart(){
+  try{ return JSON.parse(localStorage.getItem(CART_KEY) || '[]') || []; }catch(e){ return []; }
+}
+function saveCart(items){
+  localStorage.setItem(CART_KEY, JSON.stringify(items||[]));
+  updateCartBadge();
+}
+function cartTotal(items){
+  return (items||[]).reduce((sum,it)=> sum + ((it.price||0) * (it.qty||1)), 0);
+}
+function updateCartBadge(){
+  const items = loadCart();
+  const count = items.reduce((s,it)=>s + (it.qty||1), 0);
+  const el = $('#cartCount');
+  if(el) el.textContent = String(count);
+}
+updateCartBadge();
 
-  const name = ($('#custName')?.value || '').trim();
-  const phoneNo = ($('#custPhone')?.value || '').trim();
-  const address = ($('#custAddress')?.value || '').trim();
-  const city = ($('#custCity')?.value || '').trim();
-  const state = ($('#custState')?.value || '').trim();
-  const pin = ($('#custPin')?.value || '').trim();
-  const pay = ($('#custPayment')?.value || 'Prepaid').trim();
-  const note = ($('#custNote')?.value || '').trim();
-
-  const digitsPhone = phoneNo.replace(/\D/g,'');
-  const digitsPin = pin.replace(/\D/g,'');
-
-  if(!name || digitsPhone.length < 10 || !address || !city || !state || digitsPin.length !== 6){
-    alert('Please fill all details correctly (Mobile 10 digits, Pin 6 digits).');
+function openCart(){
+  const d = $('#cartDrawer'); if(!d) return;
+  d.classList.add('is-open'); d.setAttribute('aria-hidden','false');
+  renderCart();
+  document.body.style.overflow='hidden';
+}
+function closeCart(){
+  const d = $('#cartDrawer'); if(!d) return;
+  d.classList.remove('is-open'); d.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+function renderCart(){
+  const wrap = $('#cartItems'); if(!wrap) return;
+  const items = loadCart();
+  if(!items.length){
+    wrap.innerHTML = '<div style="opacity:.7;padding:12px">Cart is empty.</div>';
+    $('#cartTotal').textContent = '₹0';
     return;
   }
+  wrap.innerHTML = items.map((it, idx)=>`
+    <div class="cartitem" data-idx="${idx}">
+      <img src="${it.image}" alt="">
+      <div>
+        <div class="cartitem__title">${escapeHtml(it.title)}</div>
+        <div class="cartitem__meta">Variant: ${escapeHtml(it.variant)} • Size: ${escapeHtml(it.size)} • ₹${it.price}</div>
+        <div class="cartitem__row">
+          <div class="cartitem__qty">
+            <button type="button" data-qty="-1">−</button>
+            <div>${it.qty}</div>
+            <button type="button" data-qty="1">+</button>
+          </div>
+          <button class="cartitem__remove" type="button" data-remove="1">Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  $('#cartTotal').textContent = '₹' + cartTotal(items);
+}
 
-  // NOTE: Replace with your WhatsApp number (without +)
-  const waPhone = '918287578027';
+$('#cartFab')?.addEventListener('click', openCart);
+$('#cartDrawer')?.addEventListener('click', (e)=>{
+  if(e.target?.dataset?.cartClose) closeCart();
+  const row = e.target?.closest?.('.cartitem');
+  if(!row) return;
+  const idx = parseInt(row.dataset.idx, 10);
+  let items = loadCart();
+  if(e.target?.dataset?.remove){
+    items.splice(idx,1);
+    saveCart(items); renderCart(); return;
+  }
+  const q = e.target?.dataset?.qty;
+  if(q){
+    const delta = parseInt(q,10);
+    items[idx].qty = Math.max(1, (items[idx].qty||1) + delta);
+    saveCart(items); renderCart(); return;
+  }
+});
 
-  const firstImg = (currentProduct.images && currentProduct.images[0]) ? `${location.origin}/${currentProduct.images[0]}` : '';
-
-  const msg =
-`Assalamualaikum!\n\nOrder Details:\nProduct: ${currentProduct.title}\nVariant: ${variant}\nSize: ${size}\nQty: ${qty}\nPrice: ${currentProduct.price ? '₹'+currentProduct.price : 'Coming Soon'}\nImage: ${firstImg}\n\nCustomer Details:\nName: ${name}\nMobile: ${digitsPhone}\nAddress: ${address}\nCity: ${city}\nState: ${state}\nPin Code: ${digitsPin}\nPayment: ${pay}${note ? `\nNote: ${note}` : ''}\n\nPlease confirm availability.`;
-
-  const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
-  const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-  closeOrderSheet();
-  if(isMobile){ window.location.href = url; }
-  else { window.open(url, '_blank'); }
+$('#addToCartBtn')?.addEventListener('click', ()=>{
+  if(!currentProduct) return;
+  const qty = Math.max(1, parseInt($('#qtyVal').value||'1',10));
+  const variant = getSelectedVariant();
+  const size = getSelectedSize();
+  const item = {
+    id: currentProduct.id,
+    title: currentProduct.title,
+    variant, size,
+    qty,
+    price: currentProduct.price || 0,
+    image: currentProduct.images?.[0] || ''
+  };
+  const items = loadCart();
+  // merge same item
+  const same = items.find(x=>x.id===item.id && x.variant===item.variant && x.size===item.size);
+  if(same) same.qty += item.qty;
+  else items.push(item);
+  saveCart(items);
+  // small feedback
+  const btn = $('#addToCartBtn');
+  if(btn){
+    const old = btn.textContent;
+    btn.textContent = 'Added ✓';
+    setTimeout(()=>btn.textContent=old, 900);
+  }
 });
 
 
@@ -705,4 +722,13 @@ $('#pinCheck').addEventListener('click', ()=>{
   if(!pin){ note.textContent = 'Please enter a pin code.'; return; }
   if(pin.length < 6){ note.textContent = 'Pin code should be 6 digits.'; return; }
   note.textContent = 'Estimated delivery: 2–5 working days (metros 2–3 days).';
+});
+
+
+// Sort dropdown
+$('#sortSelect')?.addEventListener('change', (e)=>{
+  currentSort = e.target.value || 'default';
+  // rerender visible content
+  if(searchQuery){ $('#searchInput')?.dispatchEvent(new Event('input')); }
+  else { renderAllRows(); }
 });

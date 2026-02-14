@@ -6,8 +6,8 @@
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>ilhaam — Style With Soul</title>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="style.css" rel="stylesheet">
-</link></head>
+<link href="style.css" rel="stylesheet"/>
+</head>
 <body>
 <!-- Top moving strip -->
 <div class="top-strip">
@@ -110,42 +110,7 @@
 <img alt="" src="assets/ui/tabs/comingsoon.png"/>
 <span>Comming<br/>Soon</span>
 </button>
-
-</section>
-
-<!-- Sort + quick filters -->
-<section class="controls" id="controlsSection" aria-label="Sort and quick filters">
-  <div class="controls__inner">
-    <div class="controls__block">
-      <div class="controls__label">Sort</div>
-      <select id="sortSelect" aria-label="Sort products">
-        <option value="featured">Featured</option>
-        <option value="price_asc">Price: Low to High</option>
-        <option value="price_desc">Price: High to Low</option>
-        <option value="title_asc">Name: A to Z</option>
-        <option value="title_desc">Name: Z to A</option>
-      </select>
-    </div>
-    <div class="controls__block controls__block--chips">
-      <div class="controls__label">Filter</div>
-      <div class="controls__chips" id="quickFilters">
-        <button class="pill pill--active" type="button" data-qfilter="all">All</button>
-        <button class="pill" type="button" data-qfilter="black">Black</button>
-        <button class="pill" type="button" data-qfilter="white">White</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Search / filter results -->
-<section class="results" id="searchResultsSection" aria-label="Search results" style="display:none;">
-  <div class="results__head">
-    <div class="results__count" id="resultsCount">0 items</div>
-    <button class="pill" id="clearSearchBtn" type="button">Clear</button>
-  </div>
-  <div class="grid" id="resultsGrid"></div>
-</section>
-<section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
+</section><div class="sortbar"><label class="sortbar__label" for="sortSelect">Sort:</label><select class="sortbar__select" id="sortSelect"><option value="default">Featured</option><option value="price_asc">Price: Low → High</option><option value="price_desc">Price: High → Low</option><option value="name_asc">Name: A → Z</option><option value="name_desc">Name: Z → A</option></select><div class="sortbar__note">Tip: Use search to find products quickly.</div></div><section aria-label="Search results" class="section" id="searchSection" style="display:none"><div class="section__head"><div class="section__title">Search results</div><div class="section__meta" id="searchMeta"></div></div><div class="carousel"><div class="carousel__track" id="searchTrack"></div><button aria-label="Scroll left" class="carousel__arrow carousel__arrow--left" type="button">‹</button><button aria-label="Scroll right" class="carousel__arrow carousel__arrow--right" type="button">›</button></div></section><section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
 <!-- Product row (carousel) -->
 <section class="section" id="row1Section">
 <div class="carousel" data-carousel="row1">
@@ -281,57 +246,6 @@
 <button class="btn btn--ghost" id="addToCartBtn" type="button">ADD TO CART</button>
 <button class="btn btn--gold" id="waOrderBtn" type="button">ORDER ON WHATSAPP</button>
 </div>
-
-<div class="order-sheet" id="orderSheet" aria-hidden="true">
-  <div class="order-sheet__top">
-    <div class="order-sheet__title">Complete your details</div>
-    <button class="order-sheet__back" id="orderBackBtn" type="button">Back</button>
-  </div>
-  <form class="order-form" id="orderForm">
-    <div class="order-form__grid">
-      <div class="field">
-        <label>Name</label>
-        <input id="custName" type="text" autocomplete="name" required placeholder="Your name" />
-      </div>
-      <div class="field">
-        <label>Mobile</label>
-        <input id="custPhone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="10-digit number" />
-      </div>
-      <div class="field field--full">
-        <label>Full Address</label>
-        <textarea id="custAddress" rows="3" autocomplete="street-address" required placeholder="House/Street/Area"></textarea>
-      </div>
-      <div class="field">
-        <label>City</label>
-        <input id="custCity" type="text" autocomplete="address-level2" required />
-      </div>
-      <div class="field">
-        <label>State</label>
-        <input id="custState" type="text" autocomplete="address-level1" required />
-      </div>
-      <div class="field">
-        <label>Pin Code</label>
-        <input id="custPin" type="text" inputmode="numeric" autocomplete="postal-code" required placeholder="6 digits" />
-      </div>
-      <div class="field">
-        <label>Payment</label>
-        <select id="custPayment" required>
-          <option value="Prepaid">Prepaid</option>
-          <option value="COD">COD</option>
-        </select>
-      </div>
-      <div class="field field--full">
-        <label>Note (optional)</label>
-        <input id="custNote" type="text" placeholder="Any delivery note" />
-      </div>
-    </div>
-    <div class="order-sheet__actions">
-      <button class="btn btn--gold" type="submit">Continue to WhatsApp</button>
-    </div>
-    <div class="order-sheet__hint">After submit, WhatsApp will open with all details filled.</div>
-  </form>
-</div>
-
 <details class="acc" open="">
 <summary>DESCRIPTION</summary>
 <div class="acc__body">
@@ -367,8 +281,8 @@
 <div class="pdp__tiny">Note: Return policy not valid on sale/offer days (edit later if needed).</div>
 </div>
 </div>
-</div>
+<div class="waform" id="waForm" style="display:none"><div class="waform__head"><div class="waform__title">Customer details</div><button aria-label="Close" class="waform__close" data-wa-close="1" type="button">×</button></div><form class="waform__body" id="waFormEl"><div class="waform__row"><label for="custName">Name</label><input class="waform__input" id="custName" name="custName" required="required" type="text"/></div><div class="waform__row"><label for="custMobile">Mobile</label><input class="waform__input" id="custMobile" inputmode="numeric" maxlength="10" name="custMobile" pattern="[0-9]{10}" required="required" type="tel"/></div><div class="waform__row"><label for="custAddress">Full Address</label><input class="waform__input" id="custAddress" name="custAddress" required="required" type="text"/></div><div class="waform__row"><label for="custCity">City</label><input class="waform__input" id="custCity" name="custCity" required="required" type="text"/></div><div class="waform__row"><label for="custState">State</label><input class="waform__input" id="custState" name="custState" required="required" type="text"/></div><div class="waform__row"><label for="custPin">Pin Code</label><input class="waform__input" id="custPin" inputmode="numeric" maxlength="6" name="custPin" pattern="[0-9]{6}" required="required" type="tel"/></div><div class="waform__row"><label for="custPay">Payment</label><select class="waform__input" id="custPay" name="custPay"><option value="Prepaid">Prepaid</option><option value="COD">Cash on Delivery</option></select></div><div class="waform__actions"><button class="btn btn--ghost" data-wa-back="1" type="button">Back</button><button class="btn btn--gold" type="submit">Continue to WhatsApp</button></div></form></div></div>
 </div>
 <script src="app.js"></script>
-</body>
+<button aria-label="Open cart" class="cartfab" id="cartFab" type="button">🛒<span class="cartfab__badge" id="cartCount">0</span></button><div aria-hidden="true" class="drawer" id="cartDrawer"><div class="drawer__backdrop" data-cart-close="1"></div><div aria-label="Cart" aria-modal="true" class="drawer__panel" role="dialog"><div class="drawer__head"><div class="drawer__title">Your cart</div><button aria-label="Close" class="drawer__close" data-cart-close="1" type="button">×</button></div><div class="drawer__items" id="cartItems"></div><div class="drawer__foot"><div class="drawer__total">Total: <span id="cartTotal">₹0</span></div><button class="btn btn--gold" id="cartCheckout" type="button">Checkout on WhatsApp</button></div></div></div></body>
 </html>
