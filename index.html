@@ -46,7 +46,7 @@
 </a>
 <div class="search">
 <span class="search__icon">🔍</span>
-<input aria-label="Search products" id="searchInput" placeholder="Search Products" type="search"/>
+<input aria-label="Search products" id="searchInput" placeholder="Search Products" type="search" inputmode="search" autocomplete="off"/>
 </div>
 </div>
 <nav aria-label="Primary" class="nav">
@@ -110,6 +110,18 @@
 <img alt="" src="assets/ui/tabs/comingsoon.png"/>
 <span>Comming<br/>Soon</span>
 </button>
+
+  <div class="sortbar" aria-label="Sort and refine">
+    <label class="sortbar__label" for="sortSelect">Sort</label>
+    <select id="sortSelect" class="sortbar__select">
+      <option value="recommended">Recommended</option>
+      <option value="price_asc">Price: Low → High</option>
+      <option value="price_desc">Price: High → Low</option>
+      <option value="name_asc">Name: A → Z</option>
+      <option value="name_desc">Name: Z → A</option>
+    </select>
+  </div>
+
 </section><section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
 <!-- Product row (carousel) -->
 <section class="section" id="row1Section">

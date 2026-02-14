@@ -2,6 +2,25 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+
+// UI state
+let CURRENT_FILTER = 'all';
+let CURRENT_SORT = 'recommended';
+function getSearchQuery(){
+  return ($('#searchInput')?.value || '').trim().toLowerCase();
+}
+function sortFnFromKey(key){
+  if(key==='price_asc') return (a,b)=>(a.price||0)-(b.price||0);
+  if(key==='price_desc') return (a,b)=>(b.price||0)-(a.price||0);
+  if(key==='name_asc') return (a,b)=>(a.title||'').localeCompare(b.title||'');
+  if(key==='name_desc') return (a,b)=>(b.title||'').localeCompare(a.title||'');
+  return null; // recommended
+}
+function matchQuery(p, q){
+  if(!q) return true;
+  const hay = `${p.title||''} ${p.variant||''} ${(p.tags||[]).join(' ')}`.toLowerCase();
+  return hay.includes(q);
+}
 /* Theme toggle */
 (function initTheme(){
   const saved = localStorage.getItem('ilhaam_theme');
@@ -253,15 +272,7 @@ const PRODUCTS = [
     variant:'Black',
     tags:['black', 'all'],
     images:['assets/products/black/hardship/05.png', 'assets/products/black/hardship/01.png', 'assets/products/black/hardship/02.png', 'assets/products/black/hardship/03.png', 'assets/products/black/hardship/04.png']
-  },
-  {
-  id:'patience-black',
-  title:'PATIENCE',
-  price:899,
-  variant:'Black',
-  tags:['black', 'all'],
-  images:['assets/products/black/patience/01.png', 'assets/products/black/patience/02.png', 'assets/products/black/patience/03.png', 'assets/products/black/patience/04.png', 'assets/products/black/patience/04.png' ]
-},
+  }
 ];
 
 // Group products by design title so variants can switch
@@ -306,7 +317,13 @@ function cardHTML(p, opts = {}){
 
 function renderRow(trackId, pickFn, opts = {}){
   const track = document.getElementById(trackId);
+  if(!track) return;
   let items = PRODUCTS.filter(pickFn);
+  const q = opts.q ?? getSearchQuery();
+  if(q){ items = items.filter(p=>matchQuery(p,q)); }
+  const sKey = opts.sortKey ?? CURRENT_SORT;
+  const sFn = sortFnFromKey(sKey);
+  if(sFn){ items = items.slice().sort(sFn); }
   if(opts.limit){ items = items.slice(0, opts.limit); }
   track.innerHTML = items.map(p => cardHTML(p, opts)).join('');
 }
@@ -314,6 +331,16 @@ function renderRow(trackId, pickFn, opts = {}){
 renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true});
 renderRow('row2Track', p => p.tags.includes('black'));
 renderRow('row3Track', p => p.tags.includes('white'));
+
+function rerenderRows(qOverride=null){
+  const q = (qOverride===null) ? getSearchQuery() : (qOverride||'').trim().toLowerCase();
+  // Keep Friday preview minimal: show only when query empty and filter isn't black/white/soon
+  renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true, q});
+  renderRow('row2Track', p => p.tags.includes('black'), {q});
+  renderRow('row3Track', p => p.tags.includes('white'), {q});
+  // also refresh coming soon grid if exists
+  if(typeof renderComingSoon === 'function'){ renderComingSoon({q}); }
+}
 
 /* Carousel arrows */
 $$('.carousel').forEach(car=>{
@@ -332,6 +359,10 @@ function setSectionVisible(id, show){
   el.style.display = show ? '' : 'none';
 }
 function setFilter(f, opts={}){
+  CURRENT_FILTER = f;
+  // clear search when switching tabs (mobile friendly)
+  if(!opts.keepSearch){ const si = $('#searchInput'); if(si){ si.value=''; } }
+  rerenderRows('');
   // active chip
   $$('.cat').forEach(b=> b.classList.remove('cat--active'));
   const active = $(`.cat[data-filter="${f}"]`);
@@ -410,12 +441,30 @@ $$('.cat').forEach(btn=>{
   });
 });
 
+
+/* Sort dropdown */
+$('#sortSelect')?.addEventListener('change', (e)=>{
+  CURRENT_SORT = e.target.value || 'recommended';
+  rerenderRows();
+});
 setFilter('all', {noScroll:true});
 
-/* Search (demo) */
+/* Search */
 $('#searchInput')?.addEventListener('input', (e)=>{
   const q = e.target.value.trim().toLowerCase();
-  renderRow('row1Track', p => (p.title.toLowerCase().includes(q)));
+  // When searching, show all product sections so results are visible
+  if(q){
+    setSectionVisible('comingSoonSection', false);
+    setSectionVisible('row1Section', false);
+    setSectionVisible('trendingSection', true);
+    setSectionVisible('row2Section', true);
+    setSectionVisible('festivalSection', true);
+    setSectionVisible('row3Section', true);
+  }else{
+    // restore the current filter view
+    setFilter(CURRENT_FILTER, {noScroll:true, keepSearch:true});
+  }
+  rerenderRows(q);
 });
 
 /* Product Modal */
