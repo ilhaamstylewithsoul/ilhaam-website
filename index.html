@@ -110,7 +110,42 @@
 <img alt="" src="assets/ui/tabs/comingsoon.png"/>
 <span>Comming<br/>Soon</span>
 </button>
-</section><section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
+
+</section>
+
+<!-- Sort + quick filters -->
+<section class="controls" id="controlsSection" aria-label="Sort and quick filters">
+  <div class="controls__inner">
+    <div class="controls__block">
+      <div class="controls__label">Sort</div>
+      <select id="sortSelect" aria-label="Sort products">
+        <option value="featured">Featured</option>
+        <option value="price_asc">Price: Low to High</option>
+        <option value="price_desc">Price: High to Low</option>
+        <option value="title_asc">Name: A to Z</option>
+        <option value="title_desc">Name: Z to A</option>
+      </select>
+    </div>
+    <div class="controls__block controls__block--chips">
+      <div class="controls__label">Filter</div>
+      <div class="controls__chips" id="quickFilters">
+        <button class="pill pill--active" type="button" data-qfilter="all">All</button>
+        <button class="pill" type="button" data-qfilter="black">Black</button>
+        <button class="pill" type="button" data-qfilter="white">White</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Search / filter results -->
+<section class="results" id="searchResultsSection" aria-label="Search results" style="display:none;">
+  <div class="results__head">
+    <div class="results__count" id="resultsCount">0 items</div>
+    <button class="pill" id="clearSearchBtn" type="button">Clear</button>
+  </div>
+  <div class="grid" id="resultsGrid"></div>
+</section>
+<section aria-label="Coming soon" class="coming" id="comingSoonSection"><div class="coming__inner"><img alt="Coming Soon" src="assets/ui/sections/coming-soon.png"/></div></section>
 <!-- Product row (carousel) -->
 <section class="section" id="row1Section">
 <div class="carousel" data-carousel="row1">
@@ -246,6 +281,57 @@
 <button class="btn btn--ghost" id="addToCartBtn" type="button">ADD TO CART</button>
 <button class="btn btn--gold" id="waOrderBtn" type="button">ORDER ON WHATSAPP</button>
 </div>
+
+<div class="order-sheet" id="orderSheet" aria-hidden="true">
+  <div class="order-sheet__top">
+    <div class="order-sheet__title">Complete your details</div>
+    <button class="order-sheet__back" id="orderBackBtn" type="button">Back</button>
+  </div>
+  <form class="order-form" id="orderForm">
+    <div class="order-form__grid">
+      <div class="field">
+        <label>Name</label>
+        <input id="custName" type="text" autocomplete="name" required placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label>Mobile</label>
+        <input id="custPhone" type="tel" inputmode="numeric" autocomplete="tel" required placeholder="10-digit number" />
+      </div>
+      <div class="field field--full">
+        <label>Full Address</label>
+        <textarea id="custAddress" rows="3" autocomplete="street-address" required placeholder="House/Street/Area"></textarea>
+      </div>
+      <div class="field">
+        <label>City</label>
+        <input id="custCity" type="text" autocomplete="address-level2" required />
+      </div>
+      <div class="field">
+        <label>State</label>
+        <input id="custState" type="text" autocomplete="address-level1" required />
+      </div>
+      <div class="field">
+        <label>Pin Code</label>
+        <input id="custPin" type="text" inputmode="numeric" autocomplete="postal-code" required placeholder="6 digits" />
+      </div>
+      <div class="field">
+        <label>Payment</label>
+        <select id="custPayment" required>
+          <option value="Prepaid">Prepaid</option>
+          <option value="COD">COD</option>
+        </select>
+      </div>
+      <div class="field field--full">
+        <label>Note (optional)</label>
+        <input id="custNote" type="text" placeholder="Any delivery note" />
+      </div>
+    </div>
+    <div class="order-sheet__actions">
+      <button class="btn btn--gold" type="submit">Continue to WhatsApp</button>
+    </div>
+    <div class="order-sheet__hint">After submit, WhatsApp will open with all details filled.</div>
+  </form>
+</div>
+
 <details class="acc" open="">
 <summary>DESCRIPTION</summary>
 <div class="acc__body">
@@ -283,63 +369,6 @@
 </div>
 </div>
 </div>
-
-<!-- Checkout Modal -->
-<div aria-hidden="true" class="modal" id="checkoutModal">
-  <div class="modal__backdrop" data-close-checkout="1"></div>
-  <div class="modal__panel" role="dialog" aria-modal="true" aria-label="Checkout">
-    <button type="button" class="modal__close" data-close-checkout="1" aria-label="Close">×</button>
-    <div class="pdp">
-      <div class="pdp__right" style="grid-column:1 / -1;">
-        <div class="pdp__title">Enter details</div>
-        <div class="pdp__tiny" id="checkoutSummary" style="margin-top:6px;"></div>
-
-        <div class="pdp__row" style="margin-top:14px;">
-          <div class="checkout">
-            <div class="checkout__field">
-              <label for="coName">Full Name</label>
-              <input id="coName" type="text" placeholder="Your name" autocomplete="name" />
-            </div>
-            <div class="checkout__field">
-              <label for="coPhone">Mobile</label>
-              <input id="coPhone" type="tel" placeholder="10-digit number" autocomplete="tel" inputmode="numeric" />
-            </div>
-            <div class="checkout__field checkout__field--full">
-              <label for="coAddress">Full Address</label>
-              <textarea id="coAddress" placeholder="House no, street, area"></textarea>
-            </div>
-            <div class="checkout__field">
-              <label for="coCity">City</label>
-              <input id="coCity" type="text" placeholder="City" autocomplete="address-level2" />
-            </div>
-            <div class="checkout__field">
-              <label for="coState">State</label>
-              <input id="coState" type="text" placeholder="State" autocomplete="address-level1" />
-            </div>
-            <div class="checkout__field">
-              <label for="coPin">Pin Code</label>
-              <input id="coPin" type="text" placeholder="Pin" inputmode="numeric" autocomplete="postal-code" />
-            </div>
-            <div class="checkout__field">
-              <label for="coPayment">Payment</label>
-              <select id="coPayment">
-                <option value="Prepaid">Prepaid</option>
-                <option value="COD">COD</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="pdp__actions">
-          <button class="btn btn--ghost" id="checkoutBackBtn" type="button">BACK</button>
-          <button class="btn btn--gold" id="checkoutSendBtn" type="button">CONTINUE TO WHATSAPP</button>
-        </div>
-        <div class="pdp__tiny" style="margin-top:10px; color:var(--muted);">You will be redirected to WhatsApp with all details filled.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script src="app.js"></script>
 </body>
 </html>

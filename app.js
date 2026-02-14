@@ -324,6 +324,19 @@ function setSectionVisible(id, show){
   el.style.display = show ? '' : 'none';
 }
 function setFilter(f, opts={}){
+  currentCategory = f;
+  // If user is searching, keep them in results view
+  if(typeof uiState !== 'undefined' && normalize(uiState.query)){
+    if(f==='black' || f==='white' || f==='all'){
+      uiState.qfilter = f;
+      $$('#quickFilters .pill').forEach(b=>{
+        b.classList.toggle('pill--active', (b.dataset.qfilter||'all')===f);
+      });
+    }
+    renderResults();
+    return;
+  }
+
   // active chip
   $$('.cat').forEach(b=> b.classList.remove('cat--active'));
   const active = $(`.cat[data-filter="${f}"]`);
@@ -404,11 +417,84 @@ $$('.cat').forEach(btn=>{
 
 setFilter('all', {noScroll:true});
 
-/* Search (demo) */
+/* Search + Sort + Filters */
+let currentCategory = 'all';
+const uiState = { query:'', sort:'featured', qfilter:'all' };
+
+function normalize(s){ return (s||'').toString().toLowerCase().trim(); }
+
+function applySort(list){
+  const mode = uiState.sort;
+  const arr = list.slice();
+  if(mode === 'price_asc') arr.sort((a,b)=>(a.price||0)-(b.price||0));
+  else if(mode === 'price_desc') arr.sort((a,b)=>(b.price||0)-(a.price||0));
+  else if(mode === 'title_asc') arr.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(mode === 'title_desc') arr.sort((a,b)=>b.title.localeCompare(a.title));
+  return arr;
+}
+
+function matchesFilters(p){
+  const q = normalize(uiState.query);
+  if(q && !normalize(p.title).includes(q)) return false;
+
+  const f = uiState.qfilter;
+  if(f && f !== 'all' && !(p.tags||[]).includes(f)) return false;
+
+  // if user is in a category view, respect it when search is empty.
+  if(!q && currentCategory && currentCategory !== 'all' && currentCategory !== 'friday' && currentCategory !== 'soon'){
+    if(!(p.tags||[]).includes(currentCategory)) return false;
+  }
+  return true;
+}
+
+function renderResults(){
+  const section = document.getElementById('searchResultsSection');
+  const grid = document.getElementById('resultsGrid');
+  const count = document.getElementById('resultsCount');
+  if(!section || !grid || !count) return;
+
+  const q = normalize(uiState.query);
+  const list = applySort(PRODUCTS.filter(matchesFilters));
+
+  count.textContent = `${list.length} item${list.length===1?'':'s'}`;
+  grid.innerHTML = list.map(p => cardHTML(p, {})).join('');
+  section.style.display = q ? '' : 'none';
+
+  // When searching, hide other sections to avoid confusion
+  if(q){
+    ['comingSoonSection','row1Section','trendingSection','row2Section','festivalSection','row3Section'].forEach(id=>setSectionVisible(id,false));
+  }else{
+    // restore by category
+    setFilter(currentCategory, {noScroll:true});
+  }
+}
+
 $('#searchInput')?.addEventListener('input', (e)=>{
-  const q = e.target.value.trim().toLowerCase();
-  renderRow('row1Track', p => (p.title.toLowerCase().includes(q)));
+  uiState.query = e.target.value || '';
+  renderResults();
 });
+
+$('#clearSearchBtn')?.addEventListener('click', ()=>{
+  const inp = $('#searchInput');
+  if(inp) inp.value = '';
+  uiState.query = '';
+  renderResults();
+});
+
+$('#sortSelect')?.addEventListener('change', (e)=>{
+  uiState.sort = e.target.value;
+  renderResults();
+});
+
+$$('#quickFilters .pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $$('#quickFilters .pill').forEach(b=>b.classList.remove('pill--active'));
+    btn.classList.add('pill--active');
+    uiState.qfilter = btn.dataset.qfilter || 'all';
+    renderResults();
+  });
+});
+
 
 /* Product Modal */
 const modal = $('#productModal');
@@ -477,6 +563,7 @@ function renderPdp(p, opts = {}){
   }
 }
 function closeModal(){
+  if(typeof closeOrderSheet==='function'){ closeOrderSheet(); }
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden','true');
   document.body.style.overflow='';
@@ -543,98 +630,69 @@ function getSelectedSize(){
   return $('#pdpSizes .size--active')?.dataset?.size || 'M';
 }
 
-$('#waOrderBtn').addEventListener('click', ()=>{
-  if($('#waOrderBtn').disabled) return;
-  if(!currentProduct) return;
-
-  openCheckout();
-});
-
-function openCheckout(){
-  const cm = $('#checkoutModal');
-  if(!cm) return;
-  const pm = $('#productModal');
-  if(pm){ pm.classList.remove('is-open'); pm.setAttribute('aria-hidden','true'); }
-  // summary
-  const qty = parseInt($('#qtyVal').value||'1',10);
-  const variant = getSelectedVariant();
-  const size = getSelectedSize();
-  $('#checkoutSummary').textContent = `${currentProduct.title} • ${variant} • Size ${size} • Qty ${qty}`;
-  cm.classList.add('is-open');
-  cm.setAttribute('aria-hidden','false');
-  document.body.style.overflow='hidden';
-  // focus first field (helps on mobile)
-  setTimeout(()=>$('#coName')?.focus(), 50);
+const orderSheet = $('#orderSheet');
+const orderForm = $('#orderForm');
+function openOrderSheet(){
+  if(!orderSheet) return;
+  orderSheet.classList.add('is-open');
+  orderSheet.setAttribute('aria-hidden','false');
+  // keep focus sensible on mobile
+  setTimeout(()=> $('#custName')?.focus(), 50);
+}
+function closeOrderSheet(){
+  if(!orderSheet) return;
+  orderSheet.classList.remove('is-open');
+  orderSheet.setAttribute('aria-hidden','true');
 }
 
-function closeCheckout(){
-  const cm = $('#checkoutModal');
-  if(!cm) return;
-  const pm = $('#productModal');
-  if(pm){ pm.classList.remove('is-open'); pm.setAttribute('aria-hidden','true'); }
-  cm.classList.remove('is-open');
-  cm.setAttribute('aria-hidden','true');
-  document.body.style.overflow='';
-}
+$('#orderBackBtn')?.addEventListener('click', closeOrderSheet);
 
-$$('[data-close-checkout]').forEach(el=> el.addEventListener('click', closeCheckout));
-$('#checkoutBackBtn')?.addEventListener('click', ()=>{
-  closeCheckout();
-  // keep product modal open
-  const pm = $('#productModal');
-  if(pm){ pm.classList.add('is-open'); pm.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+$('#waOrderBtn')?.addEventListener('click', ()=>{
+  if(!currentProduct) return;
+  // If Friday preview modal is open, do not allow ordering
+  if(modal?.dataset.preview === '1'){
+    alert('This is a preview. Please open product from shop to order.');
+    return;
+  }
+  openOrderSheet();
 });
 
-$('#checkoutSendBtn')?.addEventListener('click', ()=>{
+orderForm?.addEventListener('submit', (e)=>{
+  e.preventDefault();
   if(!currentProduct) return;
 
-  const name = ($('#coName').value||'').trim();
-  const mobile = ($('#coPhone').value||'').trim();
-  const address = ($('#coAddress').value||'').trim();
-  const city = ($('#coCity').value||'').trim();
-  const state = ($('#coState').value||'').trim();
-  const pin = ($('#coPin').value||'').trim();
-  const payment = ($('#coPayment').value||'Prepaid').trim();
+  const variant = $('#pdpVariant .seg__btn--active')?.dataset.variant || currentProduct.variant || '—';
+  const size = $('#pdpSizes .size--active')?.dataset.size || '—';
+  const qty = parseInt($('#qtyVal')?.value || '1', 10) || 1;
 
-  // basic validation (mobile-first friendly)
-  const missing = [];
-  if(!name) missing.push('Name');
-  if(!mobile) missing.push('Mobile');
-  if(!address) missing.push('Address');
-  if(!city) missing.push('City');
-  if(!state) missing.push('State');
-  if(!pin) missing.push('Pin');
+  const name = ($('#custName')?.value || '').trim();
+  const phoneNo = ($('#custPhone')?.value || '').trim();
+  const address = ($('#custAddress')?.value || '').trim();
+  const city = ($('#custCity')?.value || '').trim();
+  const state = ($('#custState')?.value || '').trim();
+  const pin = ($('#custPin')?.value || '').trim();
+  const pay = ($('#custPayment')?.value || 'Prepaid').trim();
+  const note = ($('#custNote')?.value || '').trim();
 
-  if(missing.length){
-    alert('Please fill: ' + missing.join(', '));
+  const digitsPhone = phoneNo.replace(/\D/g,'');
+  const digitsPin = pin.replace(/\D/g,'');
+
+  if(!name || digitsPhone.length < 10 || !address || !city || !state || digitsPin.length !== 6){
+    alert('Please fill all details correctly (Mobile 10 digits, Pin 6 digits).');
     return;
   }
 
-  const qty = parseInt($('#qtyVal').value||'1',10);
-  const variant = getSelectedVariant();
-  const size = getSelectedSize();
+  // NOTE: Replace with your WhatsApp number (without +)
+  const waPhone = '918287578027';
 
-  // WhatsApp number (without +)
-  const phone = '918287578027';
+  const firstImg = (currentProduct.images && currentProduct.images[0]) ? `${location.origin}/${currentProduct.images[0]}` : '';
 
   const msg =
-`Assalamualaikum!\n\nOrder Details:
-Product: ${currentProduct.title}
-Variant: ${variant}
-Size: ${size}
-Qty: ${qty}
-Price: ${currentProduct.price ? '₹'+currentProduct.price : 'Coming Soon'}
-Image: ${location.origin}/${currentProduct.images[0]}\n\nCustomer Details:
-Name: ${name}
-Mobile: ${mobile}
-Full Address: ${address}
-City: ${city}
-State: ${state}
-Pin Code: ${pin}
-Payment: ${payment}\n\nPlease confirm availability.`;
+`Assalamualaikum!\n\nOrder Details:\nProduct: ${currentProduct.title}\nVariant: ${variant}\nSize: ${size}\nQty: ${qty}\nPrice: ${currentProduct.price ? '₹'+currentProduct.price : 'Coming Soon'}\nImage: ${firstImg}\n\nCustomer Details:\nName: ${name}\nMobile: ${digitsPhone}\nAddress: ${address}\nCity: ${city}\nState: ${state}\nPin Code: ${digitsPin}\nPayment: ${pay}${note ? `\nNote: ${note}` : ''}\n\nPlease confirm availability.`;
 
-  const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  const url = `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+  closeOrderSheet();
   if(isMobile){ window.location.href = url; }
   else { window.open(url, '_blank'); }
 });
