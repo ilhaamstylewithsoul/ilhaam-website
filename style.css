@@ -556,7 +556,26 @@ img{max-width:100%;display:block}
 .pdp__tiny{margin-top:8px;color:var(--muted);font-weight:650}
 
 @media (max-width: 980px){
-  .modal__panel{margin:0; height:100%; border-radius:0}
+  /* Full-screen, scrollable PDP on mobile */
+  .modal__panel{
+    margin:0;
+    width:100%;
+    height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .pdp{grid-template-columns:1fr; min-height:100%}
+  .pdp__left{border-right:0;border-bottom:1px solid var(--line); padding:14px}
+  .pdp__imgwrap img{height:auto; max-height:55dvh; object-fit:contain; background:#000}
+  .pdp__thumbs{gap:8px}
+  .pdp__thumb{width:78px; height:78px}
+  .pdp__right{padding:14px 14px 24px}
+  .pdp__title{font-size:22px}
+  .pdp__actions .btn{min-width:0}
+}
+
   .pdp{grid-template-columns:1fr}
   .pdp__left{border-right:0;border-bottom:1px solid var(--line)}
   .pdp__imgwrap img{height:min(62vh,520px)}
@@ -634,44 +653,26 @@ img{max-width:100%;display:block}
 }
 
 
-/* --- Fix: mobile overflow + sort bar --- */
-html, body{max-width:100%; overflow-x:hidden;}
-.sortbar{
-  margin-top:10px;
+/* Checkout modal (WhatsApp) */
+.checkout{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+}
+.checkout__field{display:flex; flex-direction:column; gap:6px}
+.checkout__field label{font-weight:900; color:var(--muted); font-size:13px}
+.checkout__field input, .checkout__field textarea, .checkout__field select{
   width:100%;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:flex-end;
-  padding:0 6px 4px;
-}
-.sortbar__label{font-weight:900; color:var(--muted); font-size:13px;}
-.sortbar__select{
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  background:var(--card);
-  color:var(--text);
+  padding:12px 12px;
+  border-radius:12px;
   border:1px solid var(--line);
-  border-radius:999px;
-  padding:10px 38px 10px 14px;
-  font-weight:900;
-  line-height:1;
-  cursor:pointer;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%),
-    linear-gradient(to right, transparent, transparent);
-  background-position:
-    calc(100% - 18px) calc(50% - 3px),
-    calc(100% - 12px) calc(50% - 3px),
-    0 0;
-  background-size:6px 6px, 6px 6px, 100% 100%;
-  background-repeat:no-repeat;
+  background:transparent;
+  color:var(--text);
+  outline:none;
 }
-@media (max-width: 900px){
-  .sortbar{justify-content:stretch;}
-  .sortbar__select{flex:1;}
-}
+.checkout__field textarea{min-height:92px; resize:vertical}
+.checkout__field--full{grid-column:1 / -1}
 
-.cats .sortbar{flex:1 1 100%; max-width:1200px}
+@media (max-width: 980px){
+  .checkout{grid-template-columns:1fr}
+}

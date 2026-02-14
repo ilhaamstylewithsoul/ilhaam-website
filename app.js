@@ -2,25 +2,6 @@
 const $ = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-
-// UI state
-let CURRENT_FILTER = 'all';
-let CURRENT_SORT = 'recommended';
-function getSearchQuery(){
-  return ($('#searchInput')?.value || '').trim().toLowerCase();
-}
-function sortFnFromKey(key){
-  if(key==='price_asc') return (a,b)=>(a.price||0)-(b.price||0);
-  if(key==='price_desc') return (a,b)=>(b.price||0)-(a.price||0);
-  if(key==='name_asc') return (a,b)=>(a.title||'').localeCompare(b.title||'');
-  if(key==='name_desc') return (a,b)=>(b.title||'').localeCompare(a.title||'');
-  return null; // recommended
-}
-function matchQuery(p, q){
-  if(!q) return true;
-  const hay = `${p.title||''} ${p.variant||''} ${(p.tags||[]).join(' ')}`.toLowerCase();
-  return hay.includes(q);
-}
 /* Theme toggle */
 (function initTheme(){
   const saved = localStorage.getItem('ilhaam_theme');
@@ -317,13 +298,7 @@ function cardHTML(p, opts = {}){
 
 function renderRow(trackId, pickFn, opts = {}){
   const track = document.getElementById(trackId);
-  if(!track) return;
   let items = PRODUCTS.filter(pickFn);
-  const q = opts.q ?? getSearchQuery();
-  if(q){ items = items.filter(p=>matchQuery(p,q)); }
-  const sKey = opts.sortKey ?? CURRENT_SORT;
-  const sFn = sortFnFromKey(sKey);
-  if(sFn){ items = items.slice().sort(sFn); }
   if(opts.limit){ items = items.slice(0, opts.limit); }
   track.innerHTML = items.map(p => cardHTML(p, opts)).join('');
 }
@@ -331,16 +306,6 @@ function renderRow(trackId, pickFn, opts = {}){
 renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true});
 renderRow('row2Track', p => p.tags.includes('black'));
 renderRow('row3Track', p => p.tags.includes('white'));
-
-function rerenderRows(qOverride=null){
-  const q = (qOverride===null) ? getSearchQuery() : (qOverride||'').trim().toLowerCase();
-  // Keep Friday preview minimal: show only when query empty and filter isn't black/white/soon
-  renderRow('row1Track', p => p.tags.includes('friday'), {limit:1, preview:true, q});
-  renderRow('row2Track', p => p.tags.includes('black'), {q});
-  renderRow('row3Track', p => p.tags.includes('white'), {q});
-  // also refresh coming soon grid if exists
-  if(typeof renderComingSoon === 'function'){ renderComingSoon({q}); }
-}
 
 /* Carousel arrows */
 $$('.carousel').forEach(car=>{
@@ -359,10 +324,6 @@ function setSectionVisible(id, show){
   el.style.display = show ? '' : 'none';
 }
 function setFilter(f, opts={}){
-  CURRENT_FILTER = f;
-  // clear search when switching tabs (mobile friendly)
-  if(!opts.keepSearch){ const si = $('#searchInput'); if(si){ si.value=''; } }
-  rerenderRows('');
   // active chip
   $$('.cat').forEach(b=> b.classList.remove('cat--active'));
   const active = $(`.cat[data-filter="${f}"]`);
@@ -441,30 +402,12 @@ $$('.cat').forEach(btn=>{
   });
 });
 
-
-/* Sort dropdown */
-$('#sortSelect')?.addEventListener('change', (e)=>{
-  CURRENT_SORT = e.target.value || 'recommended';
-  rerenderRows();
-});
 setFilter('all', {noScroll:true});
 
-/* Search */
+/* Search (demo) */
 $('#searchInput')?.addEventListener('input', (e)=>{
   const q = e.target.value.trim().toLowerCase();
-  // When searching, show all product sections so results are visible
-  if(q){
-    setSectionVisible('comingSoonSection', false);
-    setSectionVisible('row1Section', false);
-    setSectionVisible('trendingSection', true);
-    setSectionVisible('row2Section', true);
-    setSectionVisible('festivalSection', true);
-    setSectionVisible('row3Section', true);
-  }else{
-    // restore the current filter view
-    setFilter(CURRENT_FILTER, {noScroll:true, keepSearch:true});
-  }
-  rerenderRows(q);
+  renderRow('row1Track', p => (p.title.toLowerCase().includes(q)));
 });
 
 /* Product Modal */
@@ -604,11 +547,74 @@ $('#waOrderBtn').addEventListener('click', ()=>{
   if($('#waOrderBtn').disabled) return;
   if(!currentProduct) return;
 
+  openCheckout();
+});
+
+function openCheckout(){
+  const cm = $('#checkoutModal');
+  if(!cm) return;
+  const pm = $('#productModal');
+  if(pm){ pm.classList.remove('is-open'); pm.setAttribute('aria-hidden','true'); }
+  // summary
+  const qty = parseInt($('#qtyVal').value||'1',10);
+  const variant = getSelectedVariant();
+  const size = getSelectedSize();
+  $('#checkoutSummary').textContent = `${currentProduct.title} • ${variant} • Size ${size} • Qty ${qty}`;
+  cm.classList.add('is-open');
+  cm.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  // focus first field (helps on mobile)
+  setTimeout(()=>$('#coName')?.focus(), 50);
+}
+
+function closeCheckout(){
+  const cm = $('#checkoutModal');
+  if(!cm) return;
+  const pm = $('#productModal');
+  if(pm){ pm.classList.remove('is-open'); pm.setAttribute('aria-hidden','true'); }
+  cm.classList.remove('is-open');
+  cm.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+
+$$('[data-close-checkout]').forEach(el=> el.addEventListener('click', closeCheckout));
+$('#checkoutBackBtn')?.addEventListener('click', ()=>{
+  closeCheckout();
+  // keep product modal open
+  const pm = $('#productModal');
+  if(pm){ pm.classList.add('is-open'); pm.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+});
+
+$('#checkoutSendBtn')?.addEventListener('click', ()=>{
+  if(!currentProduct) return;
+
+  const name = ($('#coName').value||'').trim();
+  const mobile = ($('#coPhone').value||'').trim();
+  const address = ($('#coAddress').value||'').trim();
+  const city = ($('#coCity').value||'').trim();
+  const state = ($('#coState').value||'').trim();
+  const pin = ($('#coPin').value||'').trim();
+  const payment = ($('#coPayment').value||'Prepaid').trim();
+
+  // basic validation (mobile-first friendly)
+  const missing = [];
+  if(!name) missing.push('Name');
+  if(!mobile) missing.push('Mobile');
+  if(!address) missing.push('Address');
+  if(!city) missing.push('City');
+  if(!state) missing.push('State');
+  if(!pin) missing.push('Pin');
+
+  if(missing.length){
+    alert('Please fill: ' + missing.join(', '));
+    return;
+  }
+
   const qty = parseInt($('#qtyVal').value||'1',10);
   const variant = getSelectedVariant();
   const size = getSelectedSize();
 
-  // NOTE: Replace with your WhatsApp number (without +)
+  // WhatsApp number (without +)
   const phone = '918287578027';
 
   const msg =
@@ -619,19 +625,20 @@ Size: ${size}
 Qty: ${qty}
 Price: ${currentProduct.price ? '₹'+currentProduct.price : 'Coming Soon'}
 Image: ${location.origin}/${currentProduct.images[0]}\n\nCustomer Details:
-Name:
-Mobile:
-Full Address:
-City:
-State:
-Pin Code:
-Payment: (Prepaid/COD)\n\nPlease confirm availability.`;
+Name: ${name}
+Mobile: ${mobile}
+Full Address: ${address}
+City: ${city}
+State: ${state}
+Pin Code: ${pin}
+Payment: ${payment}\n\nPlease confirm availability.`;
 
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
   if(isMobile){ window.location.href = url; }
   else { window.open(url, '_blank'); }
 });
+
 
 /* Pincode check (demo) */
 $('#pinCheck').addEventListener('click', ()=>{
